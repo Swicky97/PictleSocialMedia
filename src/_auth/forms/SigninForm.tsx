@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SinginForm = () => {
+const SigninForm = () => {
   return (
     <div>
       
@@ -8,4 +8,4 @@ const SinginForm = () => {
   )
 }
 
-export default SinginForm
+export default SigninForm
