@@ -56,8 +56,18 @@ export async function saveUserToDB(
 
 export async function signInAccount(user: { email: string; password: string }) {
     try {
-        const session = await account.createSession(user.email, user.password);
+        const session = await account.createEmailPasswordSession(user.email, user.password);
   
+        return session;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function signOutAccount() {
+    try {
+        const session = await account.deleteSession("current");
+
         return session;
     } catch (error) {
         console.log(error);
