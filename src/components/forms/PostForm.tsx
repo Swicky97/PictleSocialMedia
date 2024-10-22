@@ -4,11 +4,11 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Button, Input, Textarea } from "../ui";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Button, Input, Textarea } from "@/components/ui";
 import { PostValidation } from "@/lib/validation";
-import { useToast } from "@/hooks/use-toast";
 import { useUserContext } from "@/context/AuthContext";
-import { useCreatePost } from "@/lib/react-query/queries";
+import { useCreatePost, useUpdatePost } from "@/lib/react-query/queries";
+import { useToast } from "@/hooks/use-toast";
 import FileUploader from "../shared/FileUploader";
 import Loader from "../shared/Loader";
 
@@ -32,7 +32,10 @@ const PostForm = ({ post, action }: PostFormProps) => {
   });
 
   // Query
-  const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
+  const { mutateAsync: createPost, isPending: isLoadingCreate } =
+    useCreatePost();
+  const { mutateAsync: updatePost, isPending: isLoadingUpdate } =
+    useUpdatePost();
 
   // Handler
   const handleSubmit = async (value: z.infer<typeof PostValidation>) => {
@@ -151,8 +154,8 @@ const PostForm = ({ post, action }: PostFormProps) => {
           <Button
             type="submit"
             className="shad-button_primary whitespace-nowrap"
-            disabled={isLoadingCreate}>
-            {(isLoadingCreate) && <Loader />}
+            disabled={isLoadingCreate || isLoadingUpdate}>
+            {(isLoadingCreate || isLoadingUpdate) && <Loader />}
             {action} Post
           </Button>
         </div>

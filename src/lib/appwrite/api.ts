@@ -1,6 +1,6 @@
 import { ID, ImageGravity, Query } from 'appwrite';
 
-import { INewPost, INewUser } from "@/types";
+import { INewPost, INewUser, IUpdatePost } from "@/types";
 import { account, appwriteConfig, avatars, databases, storage } from './config';
 
 export async function createUserAccount(user: INewUser) {
@@ -245,6 +245,108 @@ export async function deleteSavedPost(savedRecordId: string) {
         );
   
         if (!statusCode) throw Error;
+  
+        return { status: "Ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function getPostById(postId?: string) {
+    if (!postId) throw Error;
+  
+    try {
+        const post = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            postId
+        );
+  
+        if (!post) throw Error;
+  
+        return post;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function updatePost(post: IUpdatePost) {
+    const hasFileToUpdate = post.file.length > 0;
+  
+    try {
+        let image = {
+            imageUrl: new URL(post.imageUrl),  // Convert the existing string to URL
+            imageId: post.imageId,
+        };
+    
+        // Check if there is a file to update
+        if (hasFileToUpdate && post.file && post.file.length > 0) {
+            // Upload new file to Appwrite storage
+            const uploadedFile = await uploadFile(post.file[0]);
+            if (!uploadedFile) throw new Error("File upload failed");
+    
+            // Get new file URL
+            const fileUrl = getFilePreview(uploadedFile.$id);
+            if (!fileUrl) {
+                await deleteFile(uploadedFile.$id); 
+                throw new Error("Failed to get file preview");
+            }
+            const fileUrlAsUrl = new URL(fileUrl);
+            image = { ...image, imageUrl: fileUrlAsUrl, imageId: uploadedFile.$id };
+        }
+  
+        // Convert tags into array
+        const tags = post.tags?.replace(/ /g, "").split(",") || [];
+    
+        //  Update post
+        const updatedPost = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            post.postId,
+            {
+            caption: post.caption,
+            imageUrl: image.imageUrl,
+            imageId: image.imageId,
+            location: post.location,
+            tags: tags,
+            }
+        );
+  
+        // Failed to update
+        if (!updatedPost) {
+            // Delete new file that has been recently uploaded
+            if (hasFileToUpdate) {
+            await deleteFile(image.imageId);
+            }
+    
+            // If no new file uploaded, just throw error
+            throw Error;
+        }
+  
+        // Safely delete old file after successful update
+        if (hasFileToUpdate) {
+            await deleteFile(post.imageId);
+        }
+  
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function deletePost(postId?: string, imageId?: string) {
+    if (!postId || !imageId) return;
+  
+    try {
+        const statusCode = await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            postId
+        );
+  
+        if (!statusCode) throw Error;
+  
+        await deleteFile(imageId);
   
         return { status: "Ok" };
     } catch (error) {
