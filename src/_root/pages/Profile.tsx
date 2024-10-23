@@ -1,6 +1,5 @@
 import { Route, Routes, Link, Outlet, useParams, useLocation } from "react-router-dom";
 
-import { Button } from "@/components/ui";
 import { LikedPosts } from "@/_root/pages";
 import { useUserContext } from "@/context/AuthContext";
 import { useGetUserById } from "@/lib/react-query/queries";
@@ -82,11 +81,6 @@ const Profile = () => {
                   Edit Profile
                 </p>
               </Link>
-            </div>
-            <div className={`${user.id === id && "hidden"}`}>
-              <Button type="button" className="shad-button_primary px-8">
-                Follow
-              </Button>
             </div>
           </div>
         </div>
