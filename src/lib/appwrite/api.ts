@@ -1,4 +1,4 @@
-import { ID, ImageGravity, Query } from "appwrite";
+import { ID, Query } from "appwrite";
 
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 import { IUpdatePost, INewPost, INewUser, IUpdateUser } from "@/types";
@@ -62,7 +62,7 @@ export async function saveUserToDB(user: {
 // ============================== SIGN IN
 export async function signInAccount(user: { email: string; password: string }) {
     try {
-        const session = await account.createEmailPasswordSession(user.email, user.password);
+        const session = await account.createEmailSession(user.email, user.password);
 
         return session;
     } catch (error) {
@@ -129,8 +129,8 @@ export async function createPost(post: INewPost) {
         // Get file url
         const fileUrl = getFilePreview(uploadedFile.$id);
         if (!fileUrl) {
-        await deleteFile(uploadedFile.$id);
-        throw Error;
+            await deleteFile(uploadedFile.$id);
+            throw Error;
         }
 
         // Convert tags into array
@@ -185,7 +185,7 @@ export function getFilePreview(fileId: string) {
             fileId,
             2000,
             2000,
-            ImageGravity.Top,
+            "top",
             100
         );
 
@@ -540,7 +540,7 @@ export async function updateUser(user: IUpdateUser) {
 
         // Safely delete old file after successful update
         if (user.imageId && hasFileToUpdate) {
-        await deleteFile(user.imageId);
+            await deleteFile(user.imageId);
         }
 
         return updatedUser;
